@@ -1,6 +1,8 @@
 /* COLORS */
 
 const API_URL = "https://rubik-cube-solver-9r4l.onrender.com";
+
+/* COLORS */
 const COLORS = {
   U: "#ffffff",
   R: "#ff3b30",
@@ -66,10 +68,7 @@ function updateFaceGrid(face) {
 /* ------- COLOR PICKER ------- */
 function togglePalette(w, face, i) {
   const ex = w.querySelector(".palette");
-  if (ex) {
-    ex.remove();
-    return;
-  }
+  if (ex) return ex.remove();
 
   const pal = document.createElement("div");
   pal.className = "palette";
@@ -84,6 +83,7 @@ function togglePalette(w, face, i) {
       paint(w.querySelector(".cell"), k);
       pal.remove();
       syncFace(face);
+      editCell(face, i, k);
     };
 
     pal.appendChild(btn);
@@ -97,14 +97,23 @@ function paint(cell, c) {
   cell.textContent = c;
 }
 
-
 /* ------- BACKEND SYNC ------- */
 function syncFace(face) {
-  const data = { face, cells: faces[face] };
-  return fetch(`${API_URL}/api/cube/scan-face`, {
+  return fetch(`${API_BASE}/api/cube/scan-face`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+    body: JSON.stringify({ face, cells: faces[face] }),
+  }).catch(() =>
+    (result.textContent = "⚠️ Network error while syncing face")
+  );
+}
+
+/* update single cell */
+function editCell(face, index, value) {
+  return fetch(`${API_BASE}/api/cube/edit-cell`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ face, index, value }),
   });
 }
 
@@ -115,22 +124,33 @@ function syncAll() {
 ORDER.forEach(renderFace);
 syncAll();
 
+/* ------- RESET ------- */
+document.getElementById("resetBtn")?.addEventListener("click", () => {
+  fetch(`${API_BASE}/api/cube/reset`, { method: "POST" })
+    .then(() => {
+      ORDER.forEach(renderFace);
+      result.textContent = "Cube reset ✔️";
+    })
+    .catch(() => (result.textContent = "⚠️ Reset failed"));
+});
+
 /* ------- VALIDATE ------- */
 document.getElementById("validateBtn").onclick = () => {
   syncAll().then(() => {
-    fetch(`${API_URL}/api/cube/scan-face`)
-      .then((r) => r.json())
-      .then((d) => {
-        result.textContent = d.valid ? "Cube is valid 👍" : "Error: " + d.error;
-      });
+    fetch(`${API_BASE}/api/cube/validate`)
+      .then(r => r.json())
+      .then(d => {
+        result.textContent = d.valid
+          ? "Cube is valid 👍"
+          : "❌ " + d.error;
+      })
+      .catch(() => (result.textContent = "⚠️ Validation request failed"));
   });
 };
 
-
-
 /* ------- SOLVE ------- */
 function explain(m) {
-  const f = LABEL[m[0]] + "face",
+  const f = LABEL[m[0]] + " face",
     x = m.slice(1);
   if (x === "2") return `Rotate the ${f} 180° (half turn)`;
   if (x == "'") return `Rotate the ${f} 90° counter-clockwise`;
@@ -139,41 +159,37 @@ function explain(m) {
 
 document.getElementById("solveBtn").onclick = () => {
   syncAll().then(() => {
-    fetch(`${API_URL}/api/cube/scan-face`)
+    fetch(`${API_BASE}/api/cube/solve`)
       .then(r => r.json())
       .then(d => {
         if (!d.solution) {
-          result.textContent = "Error: " + d.error;
+          result.textContent = "❌ " + (d.error || "Solve failed");
           return;
         }
 
- 
-
         const moves = d.solution.trim().split(/\s+/);
-        window.solutionMoves = moves;   // store globally for step mode
-        renderFullSolution(moves);      // default view
-      });
+        window.solutionMoves = moves;
+        renderFullSolution(moves);
+      })
+      .catch(() => (result.textContent = "⚠️ Solve request failed"));
   });
 };
-function renderFullSolution(moves){
+
+function renderFullSolution(moves) {
   let html = `
   <div class="solution-box">
-
     <div class="solution-header">
       <div class="solution-title">Solution Instructions</div>
-
-      <button class="step-btn"
-        style="margin-left:auto"
-        onclick="startStepMode()">
+      <button class="step-btn" style="margin-left:auto" onclick="startStepMode()">
         ▶ Step-by-Step Mode
       </button>
     </div>
   `;
 
-  moves.forEach((m,i)=>{
+  moves.forEach((m, i) => {
     html += `
       <div class="step-line">
-        Step ${i+1}: <b>${m}</b> — ${explain(m)}
+        Step ${i + 1}: <b>${m}</b> — ${explain(m)}
       </div>`;
   });
 
@@ -183,12 +199,12 @@ function renderFullSolution(moves){
 
 let stepIndex = 0;
 
-function startStepMode(){
+function startStepMode() {
   stepIndex = 0;
   showStep();
 }
 
-function showStep(){
+function showStep() {
   const moves = window.solutionMoves;
   const move = moves[stepIndex];
 
@@ -197,7 +213,7 @@ function showStep(){
     <div class="solution-title">Guided Solve Mode</div>
 
     <div class="step-counter">
-      Step ${stepIndex+1} of ${moves.length}
+      Step ${stepIndex + 1} of ${moves.length}
     </div>
 
     <div class="current-step">
@@ -216,11 +232,10 @@ function showStep(){
   </div>`;
 }
 
-function nextStep(){ stepIndex++; showStep(); }
-function prevStep(){ stepIndex--; showStep(); }
+function nextStep() { stepIndex++; showStep(); }
+function prevStep() { stepIndex--; showStep(); }
 
-
-/* ------- CAMERA LOGIC ------- */
+/* ------- CAMERA LOGIC (unchanged) ------- */
 const video = document.getElementById("camera");
 const canvas = document.getElementById("snapshot");
 const ctx = canvas.getContext("2d");
@@ -248,7 +263,7 @@ async function openCamera() {
 
 function closeCamera() {
   if (stream) {
-    stream.getTracks().forEach((t) => t.stop());
+    stream.getTracks().forEach(t => t.stop());
     stream = null;
   }
   video.hidden = true;
@@ -257,65 +272,43 @@ function closeCamera() {
   scanStatus.textContent = "Camera closed";
 }
 
-/* ------- DETECT COLORS FROM GRID REGION ------- */
+/* ------- COLOR DETECTION + CAPTURE (unchanged) ------- */
 function detectColors() {
   const cell = canvas.width / 3;
   const res = [];
-
   const ref = {
-    U: [255, 255, 255],
-    R: [255, 60, 48],
-    F: [52, 199, 89],
-    D: [255, 255, 0],
-    L: [255, 149, 0],
-    B: [0, 122, 255],
+    U: [255,255,255], R: [255,60,48], F: [52,199,89],
+    D: [255,255,0], L: [255,149,0], B: [0,122,255],
   };
 
-  function nearest(r, g, b) {
-    let best = "U",
-      min = 1e9;
-    for (const k in ref) {
-      const [x, y, z] = ref[k];
-      const d = (r - x) ** 2 + (g - y) ** 2 + (b - z) ** 2;
-      if (d < min) {
-        min = d;
-        best = k;
-      }
+  function nearest(r,g,b){
+    let best="U", min=1e9;
+    for(const k in ref){
+      const [x,y,z]=ref[k];
+      const d=(r-x)**2+(g-y)**2+(b-z)**2;
+      if(d<min){min=d;best=k;}
     }
     return best;
   }
 
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
-      const x = c * cell + cell * 0.25;
-      const y = r * cell + cell * 0.25;
+  for(let r=0;r<3;r++){
+    for(let c=0;c<3;c++){
+      const x=c*cell+cell*0.25;
+      const y=r*cell+cell*0.25;
+      const d=ctx.getImageData(x,y,cell*0.5,cell*0.5).data;
 
-      const d = ctx.getImageData(x, y, cell * 0.5, cell * 0.5).data;
-
-      let R = 0,
-        G = 0,
-        B = 0,
-        n = 0;
-      for (let i = 0; i < d.length; i += 4) {
-        R += d[i];
-        G += d[i + 1];
-        B += d[i + 2];
-        n++;
+      let R=0,G=0,B=0,n=0;
+      for(let i=0;i<d.length;i+=4){
+        R+=d[i]; G+=d[i+1]; B+=d[i+2]; n++;
       }
-
-      res.push(nearest(R / n, G / n, B / n));
+      res.push(nearest(R/n,G/n,B/n));
     }
   }
-
   return res;
 }
 
-/* ------- CAPTURE FACE ------- */
 function captureFace() {
-  if (!stream) {
-    scanStatus.textContent = "Open the camera first";
-    return;
-  }
+  if (!stream) return scanStatus.textContent = "Open the camera first";
 
   canvas.hidden = false;
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -326,5 +319,6 @@ function captureFace() {
   updateFaceGrid(face);
   syncFace(face);
 
-  scanStatus.textContent = `${LABEL[face]} face captured — colors auto-filled (edit if wrong)`;
+  scanStatus.textContent =
+    `${LABEL[face]} face captured — colors auto-filled (edit if wrong)`;
 }
