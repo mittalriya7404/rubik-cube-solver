@@ -1,12 +1,12 @@
-🧩 Rubik Cube Solver — Web App
+**🧩 Rubik Cube Solver — Web App**
 
 A web-based Rubik’s Cube solver that allows users to input cube colors manually or scan faces using the camera, validate the cube state, and generate a step-by-step solving guide.
 
-🌐 Live Demo
+**🌐 Live Demo**
 
 https://rubik-cube-solver-vfkk-git-main-mittalriya7404s-projects.vercel.app
 
-🚀 Features
+**🚀 Features**
 
 Interactive cube color editor
 
@@ -18,17 +18,19 @@ Cube validation before solving
 
 Full solution mode + step-by-step mode
 
-🗂 Project Structure
+**🗂 Project Structure**
+```
 project
  ├── frontend   → HTML, CSS, JavaScript (Vercel)
  └── backend    → Node.js / Express API (Render)
+```
 
-⚙️ Tech Stack
+**⚙️ Tech Stack**
 
 Frontend: HTML, CSS, JavaScript
 Backend: Node.js, Express
 
-🔗 API Endpoints
+**🔗 API Endpoints**
 
 POST /api/cube/scan-face
 
@@ -41,7 +43,7 @@ GET /api/cube/validate
 GET /api/cube/solve
 
 
-🏗 Run Locally
+**🏗 Run Locally**
 Backend
 ```
 cd backend
@@ -60,7 +62,7 @@ To run locally, set:
 const API_BASE = "http://localhost:5000";
 ```
 
-🌍 Deployment
+**🌍 Deployment**
 
 Frontend: Vercel
 Backend: Render
