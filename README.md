@@ -1,4 +1,4 @@
-#🧩 Rubik Cube Solver — Web App
+# 🧩 Rubik Cube Solver — Web App
 
 A web-based Rubik’s Cube solver that allows users to input cube colors manually or scan faces using the camera, validate the cube state, and generate a step-by-step solving guide.
 
