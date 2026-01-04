@@ -1,6 +1,6 @@
 /* COLORS */
 
-const API_URL = "https://rubik-cube-solver-9r4l.onrender.com";
+const API_BASE = "https://rubik-cube-solver-9r4l.onrender.com";
 
 /* COLORS */
 const COLORS = {
