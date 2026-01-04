@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rubik's Cube Scanner & Solver</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="page-header">
+  <h1>Rubik's Cube Scanner & Solver</h1>
+  <div class="scan-panel">
+
+  <h2>Scan Cube Face</h2>
+  <div class="header-underline"></div>
+
+  <div class="scan-controls">
+    <select id="faceSelect">
+      <option value="U">Up Face</option>
+      <option value="R">Right Face</option>
+      <option value="F">Front Face</option>
+      <option value="D">Down Face</option>
+      <option value="L">Left Face</option>
+      <option value="B">Back Face</option>
+    </select>
+
+    <div class="btn-row">
+      <button id="openCamBtn">Open Camera</button>
+      <button id="captureBtn">Capture</button>
+      <button id="closeCamBtn">Close Camera</button>
+    </div>
+  </div>
+
+  <div id="camBox">
+    <video id="camera" autoplay hidden></video>
+    <canvas id="snapshot" width="280" height="280" hidden></canvas>
+
+    <div class="overlay-grid" id="guide" hidden>
+      <div class="overlay-cell"></div><div class="overlay-cell"></div><div class="overlay-cell"></div>
+      <div class="overlay-cell"></div><div class="overlay-cell"></div><div class="overlay-cell"></div>
+      <div class="overlay-cell"></div><div class="overlay-cell"></div><div class="overlay-cell"></div>
+    </div>
+  </div>
+
+  <p id="scanStatus"></p>
+</div>
+
+
+<hr>
+
+<div id="faces"></div>
+
+<div class="action-buttons">
+  <button id="validateBtn" class="big-btn">Validate</button>
+  <button id="solveBtn" class="big-btn">Solve</button>
+</div>
+
+<p id="result"></p>
+
+<script src="script.js"></script>
+</body>
+</html>
