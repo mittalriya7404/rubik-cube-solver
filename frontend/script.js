@@ -1,4 +1,6 @@
 /* COLORS */
+
+const API_URL = "https://rubik-cube-solver-9r4l.onrender.com";
 const COLORS = {
   U: "#ffffff",
   R: "#ff3b30",
@@ -95,14 +97,17 @@ function paint(cell, c) {
   cell.textContent = c;
 }
 
+
 /* ------- BACKEND SYNC ------- */
 function syncFace(face) {
-  return fetch("http://localhost:5000/api/cube/scan-face", {
+  const data = { face, cells: faces[face] };
+  return fetch(`${API_URL}/api/cube/scan-face`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ face, cells: faces[face] }),
+    body: JSON.stringify(data)
   });
 }
+
 function syncAll() {
   return Promise.all(ORDER.map(syncFace));
 }
@@ -113,13 +118,15 @@ syncAll();
 /* ------- VALIDATE ------- */
 document.getElementById("validateBtn").onclick = () => {
   syncAll().then(() => {
-    fetch("http://localhost:5000/api/cube/validate")
+    fetch(`${API_URL}/api/cube/scan-face`)
       .then((r) => r.json())
       .then((d) => {
         result.textContent = d.valid ? "Cube is valid 👍" : "Error: " + d.error;
       });
   });
 };
+
+
 
 /* ------- SOLVE ------- */
 function explain(m) {
@@ -132,13 +139,15 @@ function explain(m) {
 
 document.getElementById("solveBtn").onclick = () => {
   syncAll().then(() => {
-    fetch("http://localhost:5000/api/cube/solve")
+    fetch(`${API_URL}/api/cube/scan-face`)
       .then(r => r.json())
       .then(d => {
         if (!d.solution) {
           result.textContent = "Error: " + d.error;
           return;
         }
+
+ 
 
         const moves = d.solution.trim().split(/\s+/);
         window.solutionMoves = moves;   // store globally for step mode
